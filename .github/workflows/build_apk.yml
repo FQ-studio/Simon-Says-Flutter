@@ -2,49 +2,38 @@ name: Build Simon Says APK
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    branches: [ "main" ]
 
 jobs:
   build:
-    name: Build Release APK
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v3
         with:
-          distribution: temurin
+          distribution: 'zulu'
           java-version: '17'
-          cache: gradle
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
-          cache: true
+          flutter-version: '3.19.x'
+          channel: 'stable'
 
-      - name: Show Flutter version
-        run: flutter --version
+      - name: Generate Android Files
+        run: flutter create . --platforms=android
 
-      - name: Get Flutter dependencies
+      - name: Install dependencies
         run: flutter pub get
 
-      - name: Build release APK
+      - name: Build APK
         run: flutter build apk --release
 
-      - name: Rename APK
-        run: |
-          cp build/app/outputs/flutter-apk/app-release.apk \
-             build/app/outputs/flutter-apk/simon-says-release.apk
-
-      - name: Upload Artifact
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: simon-says-apk
-          path: build/app/outputs/flutter-apk/simon-says-release.apk
-          if-no-files-found: error
+          path: build/app/outputs/flutter-apk/app-release.apk
